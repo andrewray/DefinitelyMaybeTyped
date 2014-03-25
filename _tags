@@ -1,0 +1,5 @@
+<parser.ml{,i}>: syntax(camlp4o), package(mparser,monad-custom)
+<unit_tests.ml{,i}>: package(oUnit,mparser)
+
+<otypescript.byte>: package(mparser,oUnit)
+<otypescript.native>: package(mparser,oUnit)
