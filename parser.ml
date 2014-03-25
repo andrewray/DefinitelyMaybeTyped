@@ -482,9 +482,9 @@ module TypeScript = struct
 
   and type_ st = 
     (   zero
-    <|> attempt (predefinedType |>> fun t -> `PredefinedType t)
     <|> attempt (typeQuery |>> fun x -> `TypeQuery x) 
     <|> attempt (typeLiteral |>> fun x -> `TypeLiteral x) 
+    <|> attempt (predefinedType |>> fun t -> `PredefinedType t)
     <|> attempt (typeReference |>> fun t -> `TypeReference t)
     <|> fail "type") st
 
@@ -854,11 +854,15 @@ let sparse p s =
 let parse ?(fail=true) filename file = 
   let open Printf in
   match parse_channel TypeScript.declarationSourceFile file () with
-  | Success(x) -> printf "pass: %s\n%!" filename
-  | Failed(x,_) -> 
-      if fail then 
+  | Success(x) -> begin
+    printf "pass: %s\n%!" filename;
+    true
+  end
+  | Failed(x,_) -> begin
+      (if fail then 
         (printf "Error:\n%s\n%!" x; failwith "parse error")
       else
-        printf "fail: %s\n%!" filename
-
+        printf "fail: %s\n%!" filename);
+      false
+  end
 

@@ -133,6 +133,10 @@ let test_typescript =
         `Map("any", function `PredefinedType _ -> true | _ -> false);
         `Map("string", function `PredefinedType _ -> true | _ -> false);
         `Map("typeof t", function `TypeQuery _ -> true | _ -> false);
+        `Ok "any[]";
+        `Ok "string[]";
+        `Ok "number[]";
+        `Ok "boolean[]";
       ];
       parse_tests "object" objectType [
         `Fail "";
@@ -212,7 +216,7 @@ let test_typescript =
         `Ok "interface a<b> extends c,d { }";
         `Ok "interface a { b;c:d<e>}";
         `Ok "interface a { b:Array<any>; }";
-        `Ok "interface a { b:any[]; }"; (* need to redo arrayType (again) *)
+        `Ok "interface a { b:any[]; }"; 
       ];
       parse_tests "importDeclaration" importDeclaration [
         `Ok "import a = b";

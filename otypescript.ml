@@ -43,15 +43,20 @@ let with_file name f =
 (********************************************************************************)
 (* command line *)
 
-let parse_file name = with_file name (Parser.parse name)
+let parse_file name = with_file name (Parser.parse name) |> ignore
 let parse_dir dir = 
+  let pass, fail, exn = ref 0, ref 0, ref 0 in
   List.iter 
     (fun name -> 
       try 
-        with_file name (Parser.parse ~fail:false name)
-      with _ ->
-        Printf.printf "exn : %s\n%!" name)
-    (findall dir)
+        if with_file name (Parser.parse ~fail:false name) then incr pass
+        else incr fail
+      with _ -> begin
+        Printf.printf "exn : %s\n%!" name;
+        incr exn;
+      end)
+    (findall dir);
+  Printf.printf "pass=%i fail=%i exn=%i\n" !pass !fail !exn
 
 let () = 
   let open Arg in

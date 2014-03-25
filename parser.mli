@@ -395,7 +395,7 @@ module TypeScript : sig
 end
 
 val sparse : 'a p -> string -> 'a
-val parse : ?fail:bool -> string -> in_channel -> unit
+val parse : ?fail:bool -> string -> in_channel -> bool
 
 
 
