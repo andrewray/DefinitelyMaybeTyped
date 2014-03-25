@@ -684,6 +684,7 @@ module TypeScript = struct
       tmp <-- Token.string "function";
       afn_identifier <-- identifier;
       afn_callSignature <-- callSignature;
+      tmp <-- option (Token.char ';');
       return { afn_identifier; afn_callSignature }
 
   let ambientConstructorDeclaration = 
