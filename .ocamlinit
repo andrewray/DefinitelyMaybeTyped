@@ -1,0 +1,11 @@
+#use "topfind"
+#require "mparser"
+#require "monad-custom"
+#require "deriving-ocsigen.syntax"
+#require "unix"
+#require "oUnit"
+
+#directory "_build"
+#load "parser.cmo"
+#load "unit_tests.cmo"
+

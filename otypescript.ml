@@ -30,6 +30,13 @@ let rec findall path =
   let dirs, dts = classify [] [] all in
   List.fold_left (fun dts dir -> dts @ findall dir) dts dirs
 
+let preprocess input_name = 
+  let base = Filename.basename input_name in
+  let output_name = Filename.concat "dump" base in
+  let command = "cpp -P " ^ input_name ^ " " ^ output_name in
+  Printf.printf "%s\n%!" command;
+  Unix.system command |> ignore
+
 let with_file name f = 
   let file = open_in name in
   try
