@@ -16,11 +16,11 @@ There are three parts to this
 
 # Status
 
-A rough and ready parser which can successfully parse a few defintion files.
+A rough and ready parser which can successfully parse the whole DefinitelyType
+repository (so long as it has beeen pre-processed to remove all commments...).
 
 ### Known issues
 
 * Terrible error localisation
-* Array annotations not properly parsed
-* Stack blowup
+* Stack blowup in comment parser
 
