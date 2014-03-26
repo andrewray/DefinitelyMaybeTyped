@@ -365,7 +365,7 @@ module TypeScript = struct
     }
 
   and ambientExternalModuleElement = 
-      [ `AmbientModuleElement of ambientModuleElement
+      [ `AmbientModuleElement of ambientModuleElementTop
       | `ExportAssignment of exportAssignment
       | `ExternalImportDeclaration of externalImportDeclaration ]
 
@@ -606,7 +606,7 @@ module TypeScript = struct
     <|> fail "typeMember") st
 
   (* typeMember; typeMember; ....; typeMember[;] *)
-  and typeMemberList st = 
+  (*and typeMemberList st = 
     let t = 
       attempt (perform
         t <-- typeMember;
@@ -616,12 +616,19 @@ module TypeScript = struct
     (many t >>= (fun t ->
       (   attempt (typeMember >>= fun t' -> return (t@[t'])))
       <|> (return t))) st
+  *)
+
+  and typeMemberList st = 
+    many (attempt (perform
+      t <-- typeMember;
+      tmp <-- option (Token.char ';');
+      return t)) st
 
   and objectType st = 
     (perform
       tmp <-- Token.char '{';
       objectType <-- typeMemberList;
-      tmp <-- option (Token.char ';');
+      (*tmp <-- option (Token.char ';');*)
       tmp <-- Token.char '}';
       return objectType) st
 
@@ -702,15 +709,16 @@ module TypeScript = struct
       apm_static <-- option (Token.string "static") >>= bool_of_option;
       apm_propertyName <-- identifier;
       apm_data <-- data;
-      tmp <-- Token.char ';';
+      tmp <-- option (Token.char ';');
       return { apm_publicOrPrivate; apm_static; apm_propertyName; apm_data }
 
   let ambientPropertyMemberDeclaration =
     (   zero
+    <|> attempt (ambientPropertyMemberData callSignature |>> 
+                    fun d -> `AmbientPropertyMemberDeclarationCallSignature d)
     <|> attempt (ambientPropertyMemberData (option typeAnnotation) |>> 
                     fun d -> `AmbientPropertyMemberDeclarationTypeAnnotation d)
-    <|> attempt (ambientPropertyMemberData callSignature |>> 
-                    fun d -> `AmbientPropertyMemberDeclarationCallSignature d))
+    <|> fail "ambientPropertyMemberDeclaration")
 
   let ambientClassBodyElement = 
     (   zero
@@ -789,7 +797,7 @@ module TypeScript = struct
 
   let ambientExternalModuleElement = 
     (   zero
-    <|> attempt (ambientModuleElement |>> fun a -> `AmbientModuleElement a)
+    <|> attempt (ambientModuleElementTop |>> fun a -> `AmbientModuleElement a)
     <|> attempt (exportAssignment |>> fun a -> `ExportAssignment a)
     <|> attempt (externalImportDeclaration |>> fun a -> `ExternalImportDeclaration a)
     <|> fail "ambientExternalModuleElement")

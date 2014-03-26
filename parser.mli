@@ -305,7 +305,7 @@ module TypeScript : sig
     }
 
   and ambientExternalModuleElement = 
-      [ `AmbientModuleElement of ambientModuleElement
+      [ `AmbientModuleElement of ambientModuleElementTop
       | `ExportAssignment of exportAssignment
       | `ExternalImportDeclaration of externalImportDeclaration ]
 

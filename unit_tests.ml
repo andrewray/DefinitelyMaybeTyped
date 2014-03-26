@@ -248,7 +248,12 @@ let test_typescript =
         `Ok "class a { constructor (a:b,c); }";
         `Ok "class a { b:c<d>; }";
         `Ok "class a { b(); }";
+        `Ok "class a { b() }";
         `Ok "class a { b(c,d:e); }";
+        `Ok "class a { b }";
+        `Ok "class a { b; }";
+        `Ok "class a { a b }";
+        `Ok "class a { a b; }";
       ];
       parse_tests "ambientModuleElement" ambientModuleElement [
         `Map("var a:b;", function `AmbientVariableDeclaration _ -> true | _ -> false);
@@ -262,6 +267,7 @@ let test_typescript =
       parse_tests "ambientModuleElementTop" ambientModuleElementTop [
         `Ok "var a : b;";
         `Ok "export var a : b;";
+        `Ok "export interface SourceMapConverter {}";
       ];
       parse_tests "ambientModuleDeclaration" ambientModuleDeclaration [
         `Ok "module a { var a; var b; }";
@@ -296,6 +302,10 @@ let test_typescript =
           function `InterfaceDeclaration _ -> true | _ -> false);
         `Map("import a = b.c", function `ImportDeclaration _ -> true | _ -> false);
         `Map("import a ( \"b\" )", function `ExternalImportDeclaration _ -> true | _ -> false);
+        `Ok "declare module \"a\" {
+              export interface a {
+              }
+             }";
       ];
       (* a bunch of example code from the TypeScript documentation *)
       parse_tests "examples" declarationSourceFile [
