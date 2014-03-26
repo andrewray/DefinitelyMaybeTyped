@@ -80,6 +80,13 @@ module Token = struct
   let char name = lexeme (char name)
   let integer = (lexeme (many1 digit)) >>= fun x -> return (int_of_string (implode x))
 
+  (* XXX; no escape sequences *)
+  let stringLiteral =
+      lexeme
+        (attempt (char '"' >> (many_chars_until any_char (char '"')))
+        <|>      (char ''' >> (many_chars_until any_char (char ''')))
+        <?> "string literal")
+
 end
 
 module TypeScript = struct
@@ -383,7 +390,7 @@ module TypeScript = struct
   (* names *)
 
   let identifier = Token.ident
-  let stringLiteral = Token.lexeme Tokens.string_literal (* XXX *)
+  let stringLiteral = Token.lexeme Token.stringLiteral (* XXX *)
 
   (* types *)
 

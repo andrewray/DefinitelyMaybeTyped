@@ -87,6 +87,8 @@ let test_typescript =
         `Fail "";
         `Eq("\"\"", "");
         `Eq("\"str lit\"", "str lit");
+        `Eq("\'\'", "");
+        `Eq("'str lit'", "str lit");
       ];
     ];
     "Typescript types" >::: [
