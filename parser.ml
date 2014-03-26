@@ -74,18 +74,78 @@ module Token = struct
       return (implode (first::rest)))
   *)
 
-  let ident = lexeme (many1 (letter <|> digit <|> char '_' <|> char '$') |>> implode)
+  let escaped_char s =
+    (any_of "nrtb\\\"\'" |>>
+         (function
+            | 'n' -> '\n'
+            | 'r' -> '\r'
+            | 't' -> '\t'
+            | 'b' -> '\b'
+            | c   -> c)) s
 
+  let escape_sequence_dec =
+    let int_of_dec c =
+      (Char.code c) - (Char.code '0') in
+    let char_of_digits d2 d1 d0 =
+      char_of_int (100 * (int_of_dec d2) + 10 * (int_of_dec d1)
+                   + (int_of_dec d0))
+    in
+      fun s ->
+        (digit >>= fun d2 ->
+         digit >>= fun d1 ->
+         digit >>= fun d0 ->
+         try_return3 char_of_digits d2 d1 d0
+           "Escape sequence is no valid character code" s) s
+
+  let escape_sequence_hex =
+    let int_of_hex c =
+      if      '0' <= c && c <= '9' then (Char.code c) - (Char.code '0')
+      else if 'a' <= c && c <= 'f' then (Char.code c) - (Char.code 'a') + 10
+      else if 'A' <= c && c <= 'F' then (Char.code c) - (Char.code 'A') + 10
+      else failwith "MParser.int_of_hex: no hex digit" in
+    let char_of_digits h1 h0 =
+      char_of_int (16 * (int_of_hex h1) + (int_of_hex h0))
+    in
+      fun s ->
+        (char 'x'  >>
+         hex_digit >>= fun h1 ->
+         hex_digit >>= fun h0 ->
+         try_return2 char_of_digits h1 h0
+           "Escape sequence is no valid character code" s) s
+
+  let escape_sequence s =
+       (escape_sequence_dec
+    <|> escape_sequence_hex) s
+
+  let char_token s =
+       ((char '\\' >> (escaped_char <|> escape_sequence))
+    <|>  any_char) s
+
+  let string_literal c s =
+    (char c >> (many_chars_until char_token (char c))
+     <?> "string literal") s
+
+
+  let ident = lexeme (many1 (letter <|> digit <|> char '_' <|> char '$') |>> implode)
   let string name = lexeme (string name)
   let char name = lexeme (char name)
   let integer = (lexeme (many1 digit)) >>= fun x -> return (int_of_string (implode x))
 
   (* XXX; no escape sequences *)
+(*
   let stringLiteral =
       lexeme
         (attempt (char '"' >> (many_chars_until any_char (char '"')))
         <|>      (char ''' >> (many_chars_until any_char (char ''')))
         <?> "string literal")
+*)
+
+  let stringLiteral = 
+    lexeme
+      (attempt (string_literal '"')
+      <|>      (string_literal '\''))
+      <?> "stringLiteral"
+
 
 end
 
