@@ -111,6 +111,10 @@ let test_typescript =
         `Ok "a<b,c>";
         `Ok "a < b, c> ";
       ];
+      parse_tests "typeParameter" typeParameter [
+        `Ok "b extends c";
+        `Ok "b extends c.d";
+      ];
       parse_tests "elementType" elementType [
         `Map("any", function `PredefinedType _ -> true | _ -> false);
         `Map("number", function `PredefinedType _ -> true | _ -> false);

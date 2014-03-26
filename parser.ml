@@ -117,7 +117,7 @@ module TypeScript = struct
   and typeParameter = 
     { 
       tpp_identifier : string;
-      tpp_constraint : string option;
+      tpp_constraint : path option;
     }
 
   and typeParameters = typeParameter list
@@ -390,7 +390,10 @@ module TypeScript = struct
   (* names *)
 
   let identifier = Token.ident
-  let stringLiteral = Token.lexeme Token.stringLiteral (* XXX *)
+  let stringLiteral = Token.lexeme Token.stringLiteral 
+  let path = sep_by1 identifier (char '.') (* XXX not allowing spaces between '.'s for now,
+                                                  use Token.char otherwise *)
+
 
   (* types *)
 
@@ -401,7 +404,7 @@ module TypeScript = struct
         option 
           (perform
             tmp <-- Token.string "extends";
-            ident <-- identifier;
+            ident <-- path;
             return ident);
       return {tpp_identifier; tpp_constraint}
 
@@ -419,9 +422,6 @@ module TypeScript = struct
     <|> attempt (Token.string "string" >> return `String)
     <|> attempt (Token.string "void" >> return `Void)
     <|> fail "predefinedType"
-
-  let path = sep_by1 identifier (char '.') (* XXX not allowing spaces between '.'s for now,
-                                                        use Token.char otherwise *)
 
   let rec typeReference st = 
     (perform
@@ -505,11 +505,13 @@ module TypeScript = struct
       type_ <-- type_;
       return type_) st
 
-  and propertyName = identifier (* XXX: identifierName | stringLiteral | numericLiteral *)
+  and propertyName = 
+    attempt stringLiteral <|> identifier
+    (* XXX: identifierName | stringLiteral | numericLiteral *)
 
   and propertySignature st = 
     (perform
-      psg_propertyName <-- identifier;
+      psg_propertyName <-- propertyName;
       psg_optional <-- option (Token.char '?') >>= bool_of_option;
       psg_typeAnnotation <-- option typeAnnotation;
       return { psg_propertyName; psg_optional; psg_typeAnnotation }) st
@@ -721,7 +723,7 @@ module TypeScript = struct
     perform
       apm_publicOrPrivate <-- option publicOrPrivate;
       apm_static <-- option (Token.string "static") >>= bool_of_option;
-      apm_propertyName <-- identifier;
+      apm_propertyName <-- propertyName;
       apm_data <-- data;
       tmp <-- option (Token.char ';');
       return { apm_publicOrPrivate; apm_static; apm_propertyName; apm_data }
@@ -764,7 +766,7 @@ module TypeScript = struct
 
   let ambientEnumMember = 
     perform 
-      aem_propertyName <-- identifier;
+      aem_propertyName <-- propertyName;
       aem_integerLiteral <-- option
         (perform
           tmp <-- Token.char '=';  
