@@ -229,8 +229,8 @@ let test_typescript =
         `Fail "import a.c = c";
       ];
       parse_tests "externalImportDeclaration" externalImportDeclaration [
-        `Ok "import a ( \"b\" )";
-        `Ok "export import a ( \"b\" )";
+        `Ok "import a = require ( \"b\" );";
+        `Ok "export import a = require ( \"b\" );";
       ];
       parse_tests "ambientVariableDeclaration" ambientVariableDeclaration [
         `Ok "var a;";
@@ -281,8 +281,8 @@ let test_typescript =
       parse_tests "ambientExternalModuleElement" ambientExternalModuleElement [
         `Map("module a {}", function `AmbientModuleElement _ -> true | _ -> false);
         `Map("export = hello;", function `ExportAssignment _ -> true | _ -> false);
-        `Map("import a ( \"b\" )", function `ExternalImportDeclaration _ -> true | _ -> false);
-        `Map("export import a ( \"b\" )", 
+        `Map("import a = require( \"b\" );", function `ExternalImportDeclaration _ -> true | _ -> false);
+        `Map("export import a = require ( \"b\" );", 
           function `ExternalImportDeclaration _ -> true | _ -> false);
       ];
       parse_tests "ambientExternalModuleDeclaration" ambientExternalModuleDeclaration [
@@ -306,7 +306,7 @@ let test_typescript =
         `Map("interface a<b> extends c,d<e> { f; g:h<i> }", 
           function `InterfaceDeclaration _ -> true | _ -> false);
         `Map("import a = b.c", function `ImportDeclaration _ -> true | _ -> false);
-        `Map("import a ( \"b\" )", function `ExternalImportDeclaration _ -> true | _ -> false);
+        `Map("import a = require ( \"b\" );", function `ExternalImportDeclaration _ -> true | _ -> false);
         `Ok "declare module \"a\" {
               export interface a {
               }

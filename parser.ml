@@ -677,9 +677,12 @@ module TypeScript = struct
       eid_export <-- option (Token.string "export") >>= bool_of_option;
       tmp <-- Token.string "import";
       eid_identifier <-- identifier;
+      tmp <-- Token.char '=';
+      tmp <-- Token.string "require";
       tmp <-- Token.char '(';
       eid_stringLiteral <-- stringLiteral;
       tmp <-- Token.char ')';
+      tmp <-- Token.char ';';
       return { eid_export; eid_identifier; eid_stringLiteral }
   
   let ambientVariableDeclaration = 
@@ -801,9 +804,9 @@ module TypeScript = struct
 
   let ambientExternalModuleElement = 
     (   zero
+    <|> attempt (externalImportDeclaration |>> fun a -> `ExternalImportDeclaration a)
     <|> attempt (ambientModuleElementTop |>> fun a -> `AmbientModuleElement a)
     <|> attempt (exportAssignment |>> fun a -> `ExportAssignment a)
-    <|> attempt (externalImportDeclaration |>> fun a -> `ExternalImportDeclaration a)
     <|> fail "ambientExternalModuleElement")
 
   let ambientExternalModuleElements = many (attempt ambientExternalModuleElement)
@@ -839,8 +842,8 @@ module TypeScript = struct
     <|> attempt (ambientDeclarationTop |>> fun d -> `AmbientDeclaration d)
     <|> attempt (exportAssignment |>> fun d -> `ExportAssignment d)
     <|> attempt (interfaceDeclaration |>> fun d -> `InterfaceDeclaration d)
-    <|> attempt (importDeclaration |>> fun d -> `ImportDeclaration d)
     <|> attempt (externalImportDeclaration |>> fun d -> `ExternalImportDeclaration d)
+    <|> attempt (importDeclaration |>> fun d -> `ImportDeclaration d)
     <|> fail "declarationElement"
 
   let rec declarationElements st = 
