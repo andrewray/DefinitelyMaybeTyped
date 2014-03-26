@@ -179,6 +179,7 @@ let test_typescript =
         `Ok "new<a> ()";
         `Ok "new < Isla, Skye > ( isla )";
         `Ok "new ( isla : Island, harris? : Rocky<Island> )";
+        `Ok "new(container: HTMLElement, theme?: string): VirtualRenderer";
       ];
       parse_tests "callSignature" callSignature [
         `Fail "";
@@ -278,7 +279,7 @@ let test_typescript =
       ];
       parse_tests "ambientModuleDeclaration" ambientModuleDeclaration [
         `Ok "module a { var a; var b; }";
-        `Fail "module a { var a; var b }"; (* XXX ??? *)
+        `Ok "module a { var a; var b }"; (* now passes *)
       ];
       parse_tests "ambientExternalModuleElement" ambientExternalModuleElement [
         `Map("module a {}", function `AmbientModuleElement _ -> true | _ -> false);

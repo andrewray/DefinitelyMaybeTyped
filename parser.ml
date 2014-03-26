@@ -697,7 +697,7 @@ module TypeScript = struct
       tmp <-- Token.string "var";
       avd_identifier <-- identifier;
       avd_typeAnnotation <-- option typeAnnotation;
-      tmp <-- Token.char ';';
+      tmp <-- option (Token.char ';');
       return { avd_identifier; avd_typeAnnotation }
 
   let ambientFunctionDeclaration = 

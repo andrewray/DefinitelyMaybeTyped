@@ -1,6 +1,6 @@
 .PHONY: all clean byte native
 
-all: byte
+all: byte native
 
 byte:
 	ocamlbuild -use-ocamlfind otypescript.byte
