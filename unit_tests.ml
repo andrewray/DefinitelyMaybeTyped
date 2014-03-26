@@ -69,7 +69,12 @@ let test_typescript =
         `Ok "De";
         `Ok "_fg";
         `Ok "Xyz \n/* ... */ // ...";
-        `Fail "1hikj";
+        `Ok "1hikj";
+        `Ok "$";
+        `Ok "$$";
+        `Ok "$_";
+        `Ok "_";
+        `Ok "__";
       ];
       parse_tests "path" path [
         `Ok "abc";
