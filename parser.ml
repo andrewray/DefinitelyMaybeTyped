@@ -746,6 +746,7 @@ module TypeScript = struct
 
   let interfaceDeclaration = 
     perform
+      tmp <-- option (Token.string "export"); (* XXX LeapMotion.d.ts; this shouldn't be needed *)
       tmp <-- Token.string "interface";
       idf_identifier <-- identifier;
       idf_typeParameters <-- option typeParameters;
