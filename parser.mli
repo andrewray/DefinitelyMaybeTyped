@@ -46,7 +46,7 @@ module TypeScript : sig
   and typeParameter = 
     { 
       tpp_identifier : string;
-      tpp_constraint : path option;
+      tpp_constraint : type_ option;
     }
 
   and typeParameters = typeParameter list

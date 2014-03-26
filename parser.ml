@@ -117,7 +117,7 @@ module TypeScript = struct
   and typeParameter = 
     { 
       tpp_identifier : string;
-      tpp_constraint : path option;
+      tpp_constraint : type_ option;
     }
 
   and typeParameters = typeParameter list
@@ -404,33 +404,34 @@ module TypeScript = struct
 
   (* types *)
 
-  let typeParameter = 
-    perform
+  let rec typeParameter st = 
+    (perform
       tpp_identifier <-- identifier;
       tpp_constraint <-- 
         option 
           (perform
             tmp <-- Token.string "extends";
-            ident <-- (attempt path) <|> (Token.string "{}" >>= fun s -> return [s]); (* XXX *)
+            (*ident <-- (attempt path) <|> (Token.string "{}" >>= fun s -> return [s]); (* XXX *)*)
+            ident <-- type_; (* XXX *)
             return ident);
-      return {tpp_identifier; tpp_constraint}
+      return {tpp_identifier; tpp_constraint}) st
 
-  let typeParameters =
-    perform
+  and typeParameters st =
+    (perform
       tmp <-- Token.char '<';
       params <-- sep_by1 typeParameter (Token.char ',');
       tmp <-- Token.char '>';
-      return params
+      return params) st
 
-  let predefinedType = 
-        attempt (Token.string "any" >> return `Any)
+  and predefinedType st = 
+    (   attempt (Token.string "any" >> return `Any)
     <|> attempt (Token.string "number" >> return `Number)
     <|> attempt (Token.string "boolean" >> return `Boolean)
     <|> attempt (Token.string "string" >> return `String)
     <|> attempt (Token.string "void" >> return `Void)
-    <|> fail "predefinedType"
+    <|> fail "predefinedType") st
 
-  let rec typeReference st = 
+  and typeReference st = 
     (perform
       (*trf_typeName <-- (attempt path) <|> (stringLiteral >>= fun s -> return [s]); (* XXX *) *)
       trf_typeName <-- path;
@@ -667,6 +668,14 @@ module TypeScript = struct
 
   (* top level elements *)
 
+  and classOrInterfaceTypeList st = (sep_by1 typeReference (Token.char ',')) st
+
+  and interfaceExtendsClause st = 
+    (perform
+      tmp <-- Token.string "extends";
+      classOrInterfaceTypeList <-- classOrInterfaceTypeList;
+      return classOrInterfaceTypeList) st
+
   let exportAssignment = 
     perform
       tmp <-- Token.string "export";
@@ -674,14 +683,6 @@ module TypeScript = struct
       identifier <-- identifier;
       tmp <-- option (Token.char ';');
       return identifier
-
-  let classOrInterfaceTypeList = sep_by1 typeReference (Token.char ',')
-
-  let interfaceExtendsClause = 
-    perform
-      tmp <-- Token.string "extends";
-      classOrInterfaceTypeList <-- classOrInterfaceTypeList;
-      return classOrInterfaceTypeList
 
   let interfaceDeclaration = 
     perform
