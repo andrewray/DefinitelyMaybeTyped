@@ -202,6 +202,7 @@ module TypeScript = struct
       | `RequiredParameterSpecialized of requiredParameterSpecialized
       | `OptionalParameter of optionalParameter
       | `OptionalParameterInit of optionalParameterInit
+      | `OptionalParameterSpecialized of optionalParameterSpecialized
       | `RestParameter of restParameter ]
 
   and parameterList = parameter list
@@ -217,6 +218,12 @@ module TypeScript = struct
     {
       rps_identifier : string;
       rps_specializedSignature : string;
+    }
+
+  and optionalParameterSpecialized = 
+    {
+      ops_identifier : string;
+      ops_specializedSignature : string;
     }
 
   and publicOrPrivate = [ `Public | `Private ]
@@ -404,7 +411,7 @@ module TypeScript = struct
         option 
           (perform
             tmp <-- Token.string "extends";
-            ident <-- path;
+            ident <-- (attempt path) <|> (Token.string "{}" >>= fun s -> return [s]); (* XXX *)
             return ident);
       return {tpp_identifier; tpp_constraint}
 
@@ -425,6 +432,7 @@ module TypeScript = struct
 
   let rec typeReference st = 
     (perform
+      (*trf_typeName <-- (attempt path) <|> (stringLiteral >>= fun s -> return [s]); (* XXX *) *)
       trf_typeName <-- path;
       trf_typeArguments <-- option typeArguments;
       return { trf_typeName; trf_typeArguments }) st
@@ -542,6 +550,16 @@ module TypeScript = struct
       opr_typeAnnotation <-- option typeAnnotation;
       return { opr_publicOrPrivate; opr_identifier; opr_typeAnnotation }) st
 
+  (* XXX NOT SURE WHAT IS ACTUALLY INTENDED HERE,
+   *     see select2.d.ts *)
+  and optionalParameterSpecialized st = 
+    (perform
+      ops_identifier <-- identifier;
+      tmp <-- Token.char '?';
+      tmp <-- Token.char ':';
+      ops_specializedSignature <-- stringLiteral;
+      return { ops_identifier; ops_specializedSignature }) st
+
   and initialiser = fail "initialiser"
 
   and optionalParameterInit st = 
@@ -560,11 +578,13 @@ module TypeScript = struct
       return { rsp_identifier; rsp_typeAnnotation }) st
 
   and parameter st = 
-    (   attempt (optionalParameter |>> fun t -> `OptionalParameter t)
+    (   zero
+    <|> attempt (optionalParameterSpecialized |>> fun t -> `OptionalParameterSpecialized t)
+    <|> attempt (requiredParameterSpecialized |>> fun t -> `RequiredParameterSpecialized t)
+    <|> attempt (optionalParameter |>> fun t -> `OptionalParameter t)
     <|> attempt (optionalParameterInit |>> fun t -> `OptionalParameterInit t)
     <|> attempt (restParameter |>> fun t -> `RestParameter t)
     <|> attempt (requiredParameter |>> fun t -> `RequiredParameter t)
-    <|> attempt (requiredParameterSpecialized |>> fun t -> `RequiredParameterSpecialized t)
     <|> fail "parameter") st
 
   and parameterList st = (sep_by (attempt parameter) (Token.char ',')) st
@@ -652,7 +672,7 @@ module TypeScript = struct
       tmp <-- Token.string "export";
       tmp <-- Token.char '=';
       identifier <-- identifier;
-      tmp <-- Token.char ';';
+      tmp <-- option (Token.char ';');
       return identifier
 
   let classOrInterfaceTypeList = sep_by1 typeReference (Token.char ',')

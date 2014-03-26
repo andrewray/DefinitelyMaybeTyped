@@ -169,7 +169,7 @@ let test_typescript =
         `Ok "a?:b";
         `Ok "a?:b<c>";
         `Map("a:\"b\"", function `RequiredParameterSpecialized _ -> true | _ -> false);
-        `Fail "a?:\"b\"";
+        `Ok"a?:\"b\""; (* XXX *)
         `Map("... sommat", function `RestParameter _ -> true | _ -> false);
       ];
       parse_tests "indexSignature" indexSignature [

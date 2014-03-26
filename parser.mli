@@ -131,6 +131,7 @@ module TypeScript : sig
       | `RequiredParameterSpecialized of requiredParameterSpecialized
       | `OptionalParameter of optionalParameter
       | `OptionalParameterInit of optionalParameterInit
+      | `OptionalParameterSpecialized of optionalParameterSpecialized
       | `RestParameter of restParameter ]
 
   and parameterList = parameter list
@@ -146,6 +147,12 @@ module TypeScript : sig
     {
       rps_identifier : string;
       rps_specializedSignature : string;
+    }
+
+  and optionalParameterSpecialized = 
+    {
+      ops_identifier : string;
+      ops_specializedSignature : string;
     }
 
   and publicOrPrivate = [ `Public | `Private ]
@@ -337,6 +344,7 @@ module TypeScript : sig
   val publicOrPrivate : publicOrPrivate p
   val requiredParameter : requiredParameter p
   val requiredParameterSpecialized : requiredParameterSpecialized p
+  val optionalParameterSpecialized : optionalParameterSpecialized p
   val optionalParameter : optionalParameter p
   val optionalParameterInit : optionalParameterInit p
   val restParameter : restParameter p
