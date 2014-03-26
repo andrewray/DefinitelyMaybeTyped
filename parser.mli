@@ -317,6 +317,7 @@ module TypeScript : sig
       | `ExternalImportDeclaration of externalImportDeclaration ]
 
   and ambientExternalModuleElements = ambientExternalModuleElement list
+    deriving(Show)  
 
   val typeParameter : typeParameter p
   val typeParameters : typeParameters p
@@ -402,8 +403,7 @@ module TypeScript : sig
 
 end
 
+val to_string : TypeScript.declarationElement list option -> string
 val sparse : 'a p -> string -> 'a
-val parse : ?fail:bool -> string -> in_channel -> bool
-
-
+val parse : ?verbose:bool -> string -> in_channel -> TypeScript.declarationElement list option
 

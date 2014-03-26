@@ -1,5 +1,5 @@
-<parser.ml{,i}>: syntax(camlp4o), package(mparser,monad-custom)
+<parser.ml{,i}>: syntax(camlp4o), package(mparser,monad-custom,deriving-ocsigen.syntax)
 <unit_tests.ml{,i}>: package(oUnit,mparser)
 
-<otypescript.byte>: package(mparser,oUnit)
-<otypescript.native>: package(mparser,oUnit)
+<otypescript.byte>: package(mparser,oUnit,deriving-ocsigen)
+<otypescript.native>: package(mparser,oUnit,deriving-ocsigen)

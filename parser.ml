@@ -448,7 +448,7 @@ module TypeScript = struct
       | `ExternalImportDeclaration of externalImportDeclaration ]
 
   and ambientExternalModuleElements = ambientExternalModuleElement list
-    (*deriving (Show)*)
+    deriving (Show)
 
   (* utils *)
 
@@ -950,6 +950,9 @@ end
 
 (*********************************************************************************)
 
+let to_string ast =
+  Show.show<TypeScript.declarationElement list option> ast
+
 (* parse a string *)
 let sparse p s = 
   let open Printf in
@@ -958,18 +961,12 @@ let sparse p s =
   | Failed(x,_) -> printf "Error:\n%s\n" x; failwith "parse error"
 
 (* parse a file *)
-let parse ?(fail=true) filename file = 
+let parse ?(verbose=false) filename file = 
   let open Printf in
   match parse_channel TypeScript.declarationSourceFile file () with
-  | Success(x) -> begin
-    printf "pass: %s\n%!" filename;
-    true
-  end
+  | Success(x) -> Some(x)
   | Failed(x,_) -> begin
-      (if fail then 
-        (printf "Error:\n%s\n%!" x; failwith "parse error")
-      else
-        printf "fail: %s\n%!" filename);
-      false
+      (if verbose then printf "ERROR:\n %s\n" x);
+      None
   end
 

@@ -50,14 +50,25 @@ let with_file name f =
 (********************************************************************************)
 (* command line *)
 
-let parse_file name = with_file name (Parser.parse name) |> ignore
+let parse_file name = 
+  let ast = with_file name (Parser.parse ~verbose:true name) in
+  output_string stdout (Parser.to_string ast)
+
 let parse_dir dir = 
+  let open Printf in
   let pass, fail, exn = ref 0, ref 0, ref 0 in
   List.iter 
     (fun name -> 
       try 
-        if with_file name (Parser.parse ~fail:false name) then incr pass
-        else incr fail
+        match with_file name (Parser.parse name) with
+        | Some(x) -> begin
+            printf "pass: %s\n%!" name;
+            incr pass
+        end
+        | None ->  begin
+          printf "fail: %s\n%!" name;
+          incr fail
+        end
       with _ -> begin
         Printf.printf "exn : %s\n%!" name;
         incr exn;
