@@ -800,7 +800,7 @@ module TypeScript = struct
       tmp <-- Token.string "enum";
       aed_identifier <-- identifier;
       tmp <-- Token.char '{';
-      aed_enumBody <-- sep_by ambientEnumMember (Token.char ',');
+      aed_enumBody <-- many (attempt ((<<) ambientEnumMember (option (Token.char ','))));
       tmp <-- Token.char '}';
       return { aed_identifier; aed_enumBody }
 
