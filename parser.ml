@@ -66,11 +66,15 @@ module Token = struct
 
   let lexeme p = (p >>= fun x -> (whitespace >> return x))
 
+  (*
   let ident = lexeme (
     perform
       first <-- letter <|> char '_';
       rest <-- many (letter <|> digit <|> char '_');
       return (implode (first::rest)))
+  *)
+
+  let ident = lexeme (many1 (letter <|> digit <|> char '_' <|> char '$') |>> implode)
 
   let string name = lexeme (string name)
   let char name = lexeme (char name)
