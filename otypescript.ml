@@ -37,7 +37,7 @@ let preprocess input_name =
   Printf.printf "%s\n%!" command;
   Unix.system command |> ignore
 
-let with_file name f = 
+let with_file_in name f = 
   let file = open_in name in
   try
     let r = f file in
@@ -47,47 +47,35 @@ let with_file name f =
     close_in file;
     raise x
 
-(********************************************************************************)
-
-let summary = function
-  | None -> ()
-  | Some(ast) ->
-    let open Parser.TypeScript in
-    let open Printf in
-    printf "summary: %i top level elements\n" (List.length ast);
-    (* print a summary of top level values *)
-    List.iter (function
-      | `ExportAssignment name -> printf "export = %s\n" name
-      | `InterfaceDeclaration idf -> printf "interface %s\n" idf.idf_identifier
-      | `ImportDeclaration idl -> printf "import %s\n" idl.idl_identifier
-      | `ExternalImportDeclaration eid -> printf "external import %s\n" eid.eid_identifier
-      | `AmbientDeclaration amb ->
-          (match amb.amb_ambientDeclaration with
-          | `AmbientVariableDeclaration avd -> printf "var %s\n" avd.avd_identifier
-          | `AmbientFunctionDeclaration afn -> printf "function %s\n" afn.afn_identifier
-          | `AmbientClassDeclaration acd -> printf "class %s\n" acd.acd_identifier
-          | `AmbientEnumDeclaration aed -> printf "enum %s\n" aed.aed_identifier
-          | `AmbientModuleDeclaration amd -> 
-              printf "module %s\n" (String.concat "." amd.amd_identifierPath)
-          | `AmbientExternalModuleDeclaration eamd -> 
-              printf "external module %s\n" eamd.eamd_name))
-      ast
+let with_file_out name f = 
+  let file = open_out name in
+  try
+    let r = f file in
+    close_out file;
+    r
+  with x -> 
+    close_out file;
+    raise x
 
 (********************************************************************************)
 (* command line *)
 
-let parse_file ?(verbose=false) name = 
-  let ast = with_file name (Parser.parse ~verbose:true name) in
-  if verbose then output_string stdout (Parser.to_string ast)
-  else summary ast
+let marshall = ref ""
 
+let parse_file ?(verbose=false) name = 
+  let ast = with_file_in name (Parser.parse ~verbose:true name) in
+  (*(if verbose then output_string stdout (Parser.to_string ast)
+  else Summary.ast ast);*)
+  Summary.Print.ast ast;
+  (if !marshall <> "" then with_file_out !marshall Marshal.(fun f -> to_channel f ast []))
+    
 let parse_dir dir = 
   let open Printf in
   let pass, fail, exn = ref 0, ref 0, ref 0 in
   List.iter 
     (fun name -> 
       try 
-        match with_file name (Parser.parse name) with
+        match with_file_in name (Parser.parse name) with
         | Some(x) -> begin
             printf "pass: %s\n%!" name;
             incr pass
@@ -107,6 +95,7 @@ let () =
   let open Arg in
   parse (align [
     "-i", String(parse_file), "<file> Parse typescript definition file";
+    "-m", Set_string(marshall), "<file> Parse typescript definition file";
     "-d", String(parse_dir), 
       "<dir> Find all typescript definition files in directory and parser them";
     "-t", Unit(Unit_tests.run), " run unit tests";

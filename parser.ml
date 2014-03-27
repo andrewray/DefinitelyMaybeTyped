@@ -32,24 +32,55 @@ let implode list =
 module Comment = struct
   
   let start = "/*"
+  let docstart = "/**"
   let end_ = "*/"
   let line = "//"
 
+
+  (* documentation comment extractor.
+   * we parse them when consuming white space for the 
+   * token to which they are associated.  We dump them into
+   * a reference and clear them at all other white spcae.
+   * The plus side of this uberbodge is we don't need to alter
+   * the parser except to store the documentation *)
+  let doc : string list ref = ref []
+  let doc_push s = doc := implode s :: !doc
+  let doc_clear () = doc := []
+  let docs () = 
+    let s = String.concat "" (List.rev !doc) in
+    doc_clear ();
+    s
+
+  (* skip white space *)
   let ignore_space s = (space >> return ()) s
 
+  (* XXX: references '///' *)
+
+  (* single line comment *)
   let oneline s =
       (attempt (string line)
     >> skip_many (satisfy ((!=) '\n'))
     >> return ()) s
 
+  (* multiline comment *)
   let rec multiline st =
-    (attempt (string start) >> single) st
+    (attempt (string start) >> multi) st
 
-  and single s = (
-        (attempt (string end_) >> return ())
-    <|> (skip_many1 (none_of start) >> single)
-    <|> (any_of start >> single)
+  and multi s = 
+    (    (attempt (string end_) >> return ())
+    <|> (skip_many1 (none_of start) >> multi)
+    <|> (any_of start >> multi)
     <?> "end of comment") s
+
+  (* multiline documentation comment *)
+  let rec docmultiline st =
+    (attempt (string docstart) >> docmulti) st
+
+  and docmulti s = 
+    (    (attempt (string end_) >> return ())
+    <|> (many1 (none_of start) >>= fun s -> doc_push s; docmulti)
+    <|> (any_of start >>= fun c -> doc_push [c];  docmulti)
+    <?> "end of doc comment") s
 
 end
 
@@ -59,22 +90,9 @@ module Token = struct
 
   let whitespace s =
     let open Comment in
-    (match ("" = line, "" = start) with
-        (true,true) -> skip_many (ignore_space <?> "")
-      | (true,_)    -> skip_many (ignore_space <|> multiline <?> "")
-      | (_,true)    -> skip_many (ignore_space <|> oneline <?> "")
-      | _  -> skip_many (ignore_space <|> multiline <|> 
-                          oneline <?> "")) s
+    (skip_many (ignore_space <|> (*docmultiline <|>*) multiline <|> oneline <?> "")) s
 
   let lexeme p = (p >>= fun x -> (whitespace >> return x))
-
-  (*
-  let ident = lexeme (
-    perform
-      first <-- letter <|> char '_';
-      rest <-- many (letter <|> digit <|> char '_');
-      return (implode (first::rest)))
-  *)
 
   let escaped_char s =
     (any_of "nrtb\\\"\'" |>>
@@ -133,15 +151,6 @@ module Token = struct
   let char name = lexeme (char name)
   let integer = (lexeme (many1 digit)) >>= fun x -> return (int_of_string (implode x))
 
-  (* XXX; no escape sequences *)
-(*
-  let stringLiteral =
-      lexeme
-        (attempt (char '"' >> (many_chars_until any_char (char '"')))
-        <|>      (char ''' >> (many_chars_until any_char (char ''')))
-        <?> "string literal")
-*)
-
   let stringLiteral = 
     lexeme
       (attempt (string_literal '"')
@@ -153,304 +162,7 @@ end
 
 module TypeScript = struct
 
-  type declarationElement = 
-    [ `ExportAssignment of string
-    | `InterfaceDeclaration of interfaceDeclaration
-    | `ImportDeclaration of importDeclaration
-    | `ExternalImportDeclaration of externalImportDeclaration
-    | `AmbientDeclaration of ambientDeclarationTop ]
-  
-  and path = string list
-
-  and interfaceDeclaration =
-    {
-      idf_identifier : string;
-      idf_typeParameters : typeParameters option;
-      idf_interfaceExtendsClause : interfaceExtendsClause option;
-      idf_objectType : objectType;
-    }
-
-  and importDeclaration = 
-    {
-      idl_identifier : string;
-      idl_entityName : path;
-    }
-
-  and typeParameter = 
-    { 
-      tpp_identifier : string;
-      tpp_constraint : type_ option;
-    }
-
-  and typeParameters = typeParameter list
-
-  and interfaceExtendsClause = typeReference list
-
-  and predefinedType = 
-    [ `Any | `Number | `Boolean | `String | `Void ]
-
-  and type_ = 
-    [ `PredefinedType of predefinedType
-    | `TypeReference of typeReference
-    | `TypeQuery of path
-    | `TypeLiteral of typeLiteral ]
-
-  and typeReference = 
-    {
-      trf_typeName : path;
-      trf_typeArguments : type_ list option;
-    }
-
-  and typeMember = 
-    [ `PropertySignature of propertySignature
-    | `CallSignature of callSignature
-    | `ConstructSignature of constructSignature
-    | `IndexSignature of indexSignature
-    | `MethodSignature of methodSignature ]
-
-  and elementType = 
-    [ `PredefinedType of predefinedType
-    | `TypeReference of typeReference
-    | `TypeQuery of path
-    | `ObjectType of objectType
-    (*| `ArrayType of arrayType*) ]
-
-  and arrayType = 
-    {
-      arr_elementType : elementType;
-      arr_dimensions : int;
-    }
-
-  and typeMemberList = typeMember list
-
-  and objectType = typeMemberList
-
-  and functionType = 
-    {
-      fnt_typeParameters : typeParameters option;
-      fnt_parameterList : parameterList;
-      fnt_type : type_;
-    }
-
-  and constructorType = 
-    {
-      cnt_typeParameters : typeParameters option;
-      cnt_parameterList : parameterList;
-      cnt_type : type_;
-    }
-
-  and typeLiteral = 
-    [ `ObjectType of objectType
-    | `ArrayType of arrayType
-    | `FunctionType of functionType
-    | `ConstructorType of constructorType ]
-
-  and propertySignature = 
-    {
-      psg_propertyName : string;
-      psg_optional : bool;
-      psg_typeAnnotation : type_ option;
-    }
-
-  and callSignature =
-    {
-      csg_typeParameters : typeParameters option;
-      csg_parameterList : parameterList;
-      csg_typeAnnotation : type_ option;
-    }
-
-  and parameter = 
-      [ `RequiredParameter of requiredParameter
-      | `RequiredParameterSpecialized of requiredParameterSpecialized
-      | `OptionalParameter of optionalParameter
-      | `OptionalParameterInit of optionalParameterInit
-      | `OptionalParameterSpecialized of optionalParameterSpecialized
-      | `RestParameter of restParameter ]
-
-  and parameterList = parameter list
-
-  and requiredParameter = 
-    {
-      rpr_publicOrPrivate : publicOrPrivate option;
-      rpr_identifier : string;
-      rpr_typeAnnotation : type_ option;
-    }
-
-  and requiredParameterSpecialized = 
-    {
-      rps_identifier : string;
-      rps_specializedSignature : string;
-    }
-
-  and optionalParameterSpecialized = 
-    {
-      ops_identifier : string;
-      ops_specializedSignature : string;
-    }
-
-  and publicOrPrivate = [ `Public | `Private ]
-
-  and optionalParameter = 
-    {
-      opr_publicOrPrivate : publicOrPrivate option;
-      opr_identifier : string;
-      opr_typeAnnotation : type_ option;
-    }
-
-  and optionalParameterInit = 
-    {
-      opi_publicOrPrivate : publicOrPrivate option;
-      opi_identifier : string;
-      opi_typeAnnotation : type_ option;
-      opi_initialiser : initialiser;
-    }
-
-  and initialiser = unit (* XXX *)
-
-  and exportAssignment = string 
-
-  and classOrInterfaceTypeList = typeReference list
-
-  and restParameter = 
-    {
-      rsp_identifier : string;
-      rsp_typeAnnotation : type_ option;
-    }
-
-  and constructSignature = 
-    {
-      cns_typeParameters : typeParameters option;
-      cns_parameterList : parameterList;
-      cns_typeAnnotation : type_ option;
-    }
-
-  and stringOrNumber = [ `String | `Number ]
-
-  and indexSignature = 
-    {
-      ids_identifier : string;
-      ids_stringOrNumber : stringOrNumber;
-      ids_typeAnnotation : type_;
-    }
-
-  and methodSignature = 
-    {
-      mts_propertyName : string; (* XXX *)
-      mts_optional : bool;
-      mts_callSignature : callSignature;
-    }
-
-  and externalImportDeclaration = 
-    {
-      eid_export : bool;
-      eid_identifier : string;
-      eid_stringLiteral : string;
-    }
-
-  and ambientDeclaration = 
-      [ `AmbientVariableDeclaration of ambientVariableDeclaration
-      | `AmbientFunctionDeclaration of ambientFunctionDeclaration
-      | `AmbientClassDeclaration of ambientClassDeclaration
-      | `AmbientEnumDeclaration of ambientEnumDeclaration
-      | `AmbientModuleDeclaration of ambientModuleDeclaration
-      | `AmbientExternalModuleDeclaration of ambientExternalModuleDeclaration ]
-
-  and ambientDeclarationTop = 
-    {
-      amb_export : bool;
-      amb_ambientDeclaration : ambientDeclaration;
-    }
-
-  and ambientVariableDeclaration = 
-    {
-      avd_identifier : string;
-      avd_typeAnnotation : type_ option;
-    }
-  
-  and ambientEnumDeclaration = 
-    {
-      aed_identifier : string;
-      aed_enumBody : ambientEnumMember list;
-    }
-
-  and ambientEnumMember = 
-    {
-      aem_propertyName : string;
-      aem_integerLiteral : int option;
-    }
-
-  and ambientFunctionDeclaration = 
-    {
-      afn_identifier : string;
-      afn_callSignature : callSignature;
-    }
-
-  and ambientClassBodyElement = 
-    [ `AmbientConstructorDeclaration of ambientConstructorDeclaration
-    | `AmbientPropertyMemberDeclaration of ambientPropertyMemberDeclaration
-    | `IndexSignature of indexSignature ]
-
-  and ambientConstructorDeclaration = parameter list
-
-  and ambientPropertyMemberDeclaration = 
-    [ `AmbientPropertyMemberDeclarationTypeAnnotation of 
-      type_ option ambientPropertyMemberData
-    | `AmbientPropertyMemberDeclarationCallSignature of 
-      callSignature ambientPropertyMemberData ]
-
-  and 'a ambientPropertyMemberData = (* deriving? *)
-    {
-      apm_publicOrPrivate : publicOrPrivate option;
-      apm_static : bool;
-      apm_propertyName : string;
-      apm_data : 'a;
-    }
-
-  and ambientClassDeclaration = 
-    {
-      acd_identifier : string;
-      acd_typeParameters : typeParameters option;
-      acd_extends : typeReference option;
-      acd_implements : classOrInterfaceTypeList option;
-      acd_classBody : ambientClassBodyElement list;
-    }
-
-  and ambientModuleDeclaration = 
-    {
-      amd_identifierPath : path;
-      amd_ambientModuleBody : ambientModuleElementTop list;
-    }
-
-  and ambientModuleElement = 
-    [ `AmbientVariableDeclaration of ambientVariableDeclaration
-    | `AmbientFunctionDeclaration of ambientFunctionDeclaration
-    | `AmbientClassDeclaration of ambientClassDeclaration
-    | `InterfaceDeclaration of interfaceDeclaration
-    | `AmbientEnumDeclaration of ambientEnumDeclaration
-    | `AmbientModuleDeclaration of ambientModuleDeclaration
-    | `ImportDeclaration of importDeclaration ]
-
-  and ambientModuleElementTop =
-    {
-      ame_export : bool;
-      ame_ambientModuleBody : ambientModuleElement;
-    }
-
-  and ambientModuleElements = ambientModuleElementTop list
-  
-  and ambientExternalModuleDeclaration = 
-    {
-      eamd_name : string;
-      eamd_ambientExternalModuleElements : ambientExternalModuleElements;
-    }
-
-  and ambientExternalModuleElement = 
-      [ `AmbientModuleElement of ambientModuleElementTop
-      | `ExportAssignment of exportAssignment
-      | `ExternalImportDeclaration of externalImportDeclaration ]
-
-  and ambientExternalModuleElements = ambientExternalModuleElement list
-    deriving (Show)
+  open Ast
 
   (* utils *)
 
@@ -746,8 +458,8 @@ module TypeScript = struct
       tmp <-- option (Token.char ';');
       return identifier
 
-  let interfaceDeclaration = 
-    perform
+  let interfaceDeclaration st = 
+    (perform
       tmp <-- option (Token.string "export"); (* XXX LeapMotion.d.ts; this shouldn't be needed *)
       tmp <-- Token.string "interface";
       idf_identifier <-- identifier;
@@ -755,15 +467,16 @@ module TypeScript = struct
       idf_interfaceExtendsClause <-- option interfaceExtendsClause;
       idf_objectType <-- objectType;
       return 
-          { idf_identifier; idf_typeParameters; idf_interfaceExtendsClause; idf_objectType }
+          { idf_identifier; idf_typeParameters; idf_interfaceExtendsClause; 
+            idf_objectType }) st
   
-  let importDeclaration = 
-    perform
+  let importDeclaration st = 
+    (perform
       tmp <-- Token.string "import";
       idl_identifier <-- identifier;
       tmp <-- Token.char '=';
       idl_entityName <-- path;
-      return { idl_identifier; idl_entityName }
+      return { idl_identifier; idl_entityName }) st
   
   let externalImportDeclaration = 
     perform
@@ -904,14 +617,14 @@ module TypeScript = struct
 
   let ambientExternalModuleElements = many (attempt ambientExternalModuleElement)
 
-  let ambientExternalModuleDeclaration = 
-    perform
+  let ambientExternalModuleDeclaration st = 
+    (perform
       tmp <-- Token.string "module";
       eamd_name <-- stringLiteral;
       tmp <-- Token.char '{';
       eamd_ambientExternalModuleElements <-- ambientExternalModuleElements;
       tmp <-- Token.char '}';
-      return { eamd_name; eamd_ambientExternalModuleElements }
+      return { eamd_name; eamd_ambientExternalModuleElements }) st
 
   let ambientDeclaration = 
         zero
@@ -930,14 +643,14 @@ module TypeScript = struct
       amb_ambientDeclaration <-- ambientDeclaration;
       return { amb_export; amb_ambientDeclaration }
 
-  let declarationElement =
-        zero 
+  let declarationElement st =
+    (   zero 
     <|> attempt (ambientDeclarationTop |>> fun d -> `AmbientDeclaration d)
     <|> attempt (exportAssignment |>> fun d -> `ExportAssignment d)
     <|> attempt (interfaceDeclaration |>> fun d -> `InterfaceDeclaration d)
     <|> attempt (externalImportDeclaration |>> fun d -> `ExternalImportDeclaration d)
     <|> attempt (importDeclaration |>> fun d -> `ImportDeclaration d)
-    <|> fail "declarationElement"
+    <|> fail "declarationElement") st
 
   let rec declarationElements st = 
     ((attempt declarationElement >>= fun d ->
@@ -951,8 +664,8 @@ end
 
 (*********************************************************************************)
 
-let to_string ast =
-  Show.show<TypeScript.declarationElement list option> ast
+(*let to_string ast =
+  Show.show<Ast.declarationElement list option> ast*)
 
 (* parse a string *)
 let sparse p s = 

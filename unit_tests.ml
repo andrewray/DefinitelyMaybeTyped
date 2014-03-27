@@ -39,6 +39,7 @@ let parse_tests name parse l =
 
 let test_typescript = 
   let open Parser in
+  let open Ast in
   let open TypeScript in
   "Tests" >::: [
     "Token" >::: [

@@ -1,5 +1,15 @@
+<ast.ml{,i}>: syntax(camlp4o), package(mparser,deriving-ocsigen.syntax)
 <parser.ml{,i}>: syntax(camlp4o), package(mparser,monad-custom,deriving-ocsigen.syntax)
 <unit_tests.ml{,i}>: package(oUnit,mparser)
 
 <otypescript.byte>: package(mparser,oUnit,deriving-ocsigen)
 <otypescript.native>: package(mparser,oUnit,deriving-ocsigen)
+
+<test/jsserver.ml>: package(findlib,cohttp.lwt)
+<test/jsserver.byte>: package(findlib,cohttp.lwt)
+
+<test/test_ml.ml>: syntax(camlp4o), package(js_of_ocaml.syntax)
+<test/test_ml.byte>: package(js_of_ocaml)
+
+true: bin_annot
+<test>: include
