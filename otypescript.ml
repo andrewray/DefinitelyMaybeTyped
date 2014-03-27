@@ -48,11 +48,38 @@ let with_file name f =
     raise x
 
 (********************************************************************************)
+
+let summary = function
+  | None -> ()
+  | Some(ast) ->
+    let open Parser.TypeScript in
+    let open Printf in
+    printf "summary: %i top level elements\n" (List.length ast);
+    (* print a summary of top level values *)
+    List.iter (function
+      | `ExportAssignment name -> printf "export = %s\n" name
+      | `InterfaceDeclaration idf -> printf "interface %s\n" idf.idf_identifier
+      | `ImportDeclaration idl -> printf "import %s\n" idl.idl_identifier
+      | `ExternalImportDeclaration eid -> printf "external import %s\n" eid.eid_identifier
+      | `AmbientDeclaration amb ->
+          (match amb.amb_ambientDeclaration with
+          | `AmbientVariableDeclaration avd -> printf "var %s\n" avd.avd_identifier
+          | `AmbientFunctionDeclaration afn -> printf "function %s\n" afn.afn_identifier
+          | `AmbientClassDeclaration acd -> printf "class %s\n" acd.acd_identifier
+          | `AmbientEnumDeclaration aed -> printf "enum %s\n" aed.aed_identifier
+          | `AmbientModuleDeclaration amd -> 
+              printf "module %s\n" (String.concat "." amd.amd_identifierPath)
+          | `AmbientExternalModuleDeclaration eamd -> 
+              printf "external module %s\n" eamd.eamd_name))
+      ast
+
+(********************************************************************************)
 (* command line *)
 
-let parse_file name = 
+let parse_file ?(verbose=false) name = 
   let ast = with_file name (Parser.parse ~verbose:true name) in
-  output_string stdout (Parser.to_string ast)
+  if verbose then output_string stdout (Parser.to_string ast)
+  else summary ast
 
 let parse_dir dir = 
   let open Printf in
