@@ -47,13 +47,15 @@ module Comment = struct
 
   and single s = (
         (attempt (string end_) >> return ())
-    <|> (skip_many (none_of start) >> single)
+    <|> (skip_many1 (none_of start) >> single)
     <|> (any_of start >> single)
     <?> "end of comment") s
 
 end
 
 module Token = struct
+
+  let bom = char '\xef' >> char '\xbb' >> char '\xbf'
 
   let whitespace s =
     let open Comment in
@@ -943,8 +945,7 @@ module TypeScript = struct
           return (d::dt))
     <|> (eof >> return [])) st
 
-  let declarationSourceFile = Token.whitespace >> declarationElements
-    (*Token.whitespace >> many1 declarationElement >>= fun r -> eof >> return r*)
+  let declarationSourceFile = option Token.bom >> Token.whitespace >> declarationElements
 
 end
 
