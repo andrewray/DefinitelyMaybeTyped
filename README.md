@@ -17,10 +17,11 @@ There are three parts to this
 # Status
 
 A rough and ready parser which can successfully parse the whole DefinitelyType
-repository (so long as it has beeen pre-processed to remove all commments...).
+repository.
+
+Starting to consider how to convert to ocaml.
 
 ### Known issues
 
 * Terrible error localisation
-* Stack blowup in comment parser
 
