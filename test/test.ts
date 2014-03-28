@@ -1,3 +1,5 @@
+/// <reference path="../../DefinitelyTyped/jquery/jquery.d.ts"/>
+
 interface vec_i {
   x:number;
   y:number;
@@ -32,7 +34,26 @@ interface combined extends vec_i, luminance {
   xxx : boolean;
 }
 
+interface Y {
+  a : string;
+  (b:string) : string;
+}
+
 var myvec_i : vec_i = { x:2, y:3, z:4 };
 var myvec = new vec(0,1);
 myvec.add2(myvec_i);
+
+
+function prepareList() {
+  $('#expList').find('li:has(ul)')
+      .click( function(event) {
+        if (this == event.target) {
+          $(this).toggleClass('expanded');
+          $(this).children('ul').toggle('medium');
+        }
+        return false;
+      })
+      .addClass('collapsed')
+      .children('ul').hide();
+}
 

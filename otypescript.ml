@@ -91,6 +91,9 @@ let parse_dir dir =
     (findall dir);
   Printf.printf "pass=%i fail=%i exn=%i\n" !pass !fail !exn
 
+(* for now just so ocamlbuild compiles Convert *)
+let convert = Convert.interfaceDeclaration
+
 let () = 
   let open Arg in
   parse (align [

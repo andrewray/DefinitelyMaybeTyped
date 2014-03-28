@@ -476,6 +476,7 @@ module TypeScript = struct
       idl_identifier <-- identifier;
       tmp <-- Token.char '=';
       idl_entityName <-- path;
+      tmp <-- option (Token.char ';');
       return { idl_identifier; idl_entityName }) st
   
   let externalImportDeclaration = 

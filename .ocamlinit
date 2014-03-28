@@ -6,6 +6,8 @@
 #require "oUnit"
 
 #directory "_build"
+#load "ast.cmo"
 #load "parser.cmo"
 #load "unit_tests.cmo"
+#load "convert.cmo"
 

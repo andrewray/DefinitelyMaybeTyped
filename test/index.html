@@ -4,27 +4,10 @@
     <title>TypeScript Testing</title>
 
     <link rel="stylesheet" type="text/css" href="index.css">
-    <script src="test.js" type="text/javascript" charset="utf-8"></script>
-    <script src="test_ml.js" type="text/javascript" charset="utf-8"></script>
     <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
-    <script>
-      function prepareList() {
-        $('#expList').find('li:has(ul)')
-          .click( function(event) {
-            if (this == event.target) {
-              $(this).toggleClass('expanded');
-              $(this).children('ul').toggle('medium');
-            }
-            return false;
-          })
-          .addClass('collapsed')
-          .children('ul').hide();
-        };
-      /*$(document).ready( function() {
-          prepareList()
-      });*/
-    </script>
+    <script src="test.js" type="text/javascript" charset="utf-8"></script>
+    <script src="test_ml.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
 <body>

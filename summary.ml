@@ -32,8 +32,8 @@ end) = struct
         show "property [call]" x.apm_propertyName
     | `IndexSignature x -> show "index" x.ids_identifier
 
-  and ambientModuleElement ?(ext=false) level = 
-    let show n t = show level ("declare " ^ (if ext then "external " ^ n else n)) t in
+  and ambientModuleElement level = 
+    let show n t = show level n t in
     function
     | `AmbientVariableDeclaration avd -> show "var" avd.avd_identifier
     | `AmbientFunctionDeclaration afn -> show "function" afn.afn_identifier
@@ -54,9 +54,9 @@ end) = struct
     let show = show level in
     function 
     | `AmbientModuleElement x -> 
-        ambientModuleElement ~ext:true (level+1) x.ame_ambientModuleBody
-    | `ExportAssignment x -> show "declare external export" x
-    | `ExternalImportDeclaration x -> show "declare external import" x.eid_identifier
+        ambientModuleElement (level+1) x.ame_ambientModuleBody
+    | `ExportAssignment x -> show "export" x
+    | `ExternalImportDeclaration x -> show "import" x.eid_identifier
 
   and ambientDeclaration level = 
     let show = show level in
@@ -64,16 +64,16 @@ end) = struct
     | `AmbientVariableDeclaration avd -> show "declare var" avd.avd_identifier
     | `AmbientFunctionDeclaration afn -> show "declare function" afn.afn_identifier
     | `AmbientClassDeclaration acd -> 
-        show "class" acd.acd_identifier;
+        show "declare class" acd.acd_identifier;
         List.iter (ambientClassBodyElement (level+1)) acd.acd_classBody
     | `AmbientEnumDeclaration aed -> show "declare enum" aed.aed_identifier
     | `AmbientModuleDeclaration amd -> 
-        show "module" (path amd.amd_identifierPath);
+        show "declare module" (path amd.amd_identifierPath);
         List.iter (fun x -> ambientModuleElement (level+1) x.ame_ambientModuleBody)
           amd.amd_ambientModuleBody
     | `AmbientExternalModuleDeclaration eamd -> 
-        show "declare external module" eamd.eamd_name;
-        List.iter (ambientExternalModuleElement level) eamd.eamd_ambientExternalModuleElements
+        show "declare (ext) module" eamd.eamd_name;
+        List.iter (ambientExternalModuleElement (level+1)) eamd.eamd_ambientExternalModuleElements
 
   and ast = function
     | None -> ()
@@ -85,9 +85,9 @@ end) = struct
         | `ExportAssignment name -> show "export" name
         | `InterfaceDeclaration idf -> 
             show "interface" idf.idf_identifier;
-            List.iter (typeMember 2) idf.idf_objectType
+            List.iter (typeMember 1) idf.idf_objectType
         | `ImportDeclaration idl -> show "import" idl.idl_identifier
-        | `ExternalImportDeclaration eid -> show "external import" eid.eid_identifier
+        | `ExternalImportDeclaration eid -> show "import (ext)" eid.eid_identifier
         | `AmbientDeclaration amb -> ambientDeclaration 0 amb.amb_ambientDeclaration)
         ast
 

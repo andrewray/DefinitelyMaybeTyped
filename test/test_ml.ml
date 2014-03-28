@@ -70,7 +70,7 @@ let summary () =
         if level = l then begin
           (* add to current parent, recurse *)
           let il = Dom_html.createLi doc in
-          il##innerHTML <- Js.string (t ^ " <b>" ^ n ^ "</b>");
+          il##innerHTML <- Js.string ("<code>" ^ t ^ "</code> <i style=\"color:darkgreen\">" ^ n ^ "</i>");
           Dom.appendChild parent il;
           build_list parent il level tl
         end else if level < l then begin
