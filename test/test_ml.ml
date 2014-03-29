@@ -24,7 +24,8 @@ let init () =
   let load_from_server path =
       try
         let xml = XmlHttpRequest.create () in
-        xml##_open(Js.string "GET", Js.string ("http://127.0.0.1:8888/filesys" ^ path), Js._false);
+        xml##_open(Js.string "GET", Js.string (path), Js._false);
+        xml##overrideMimeType(Js.string "text/plain; charset=x-user-defined");
         xml##send(Js.null);
         if xml##status = 200 then
           let resp = xml##responseText in
@@ -46,7 +47,7 @@ let init () =
 
 let summary () = 
   (* load AST *)
-  let f = open_in "out.m" in
+  let f = open_in "DefinitelyMaybeTyped/out.m" in
   let ast : Ast.declarationElement list option = Marshal.from_channel f in
   let () = close_in f in
 
