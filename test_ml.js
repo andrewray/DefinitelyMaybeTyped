@@ -2079,6 +2079,7 @@
                     catch(_f_){throw [0,_aY_,_cX_]}
                     var _b_=_p_}}}
               _b_.open("GET",_g_.toString(),_bf_);
+              _b_.overrideMimeType("text/plain; charset=x-user-defined");
               _b_.send(_cG_);
               var _h_=200===_b_.status?1:0;
               if(_h_)
