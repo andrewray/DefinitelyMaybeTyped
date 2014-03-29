@@ -60,14 +60,22 @@ let with_file_out name f =
 (********************************************************************************)
 (* command line *)
 
-let marshall = ref ""
-
 let parse_file ?(verbose=false) name = 
   let ast = with_file_in name (Parser.parse ~verbose:true name) in
   (*(if verbose then output_string stdout (Parser.to_string ast)
   else Summary.ast ast);*)
   Summary.Print.ast ast;
-  (if !marshall <> "" then with_file_out !marshall Marshal.(fun f -> to_channel f ast []))
+  let base = Filename.(chop_suffix (basename name) ".d.ts") in
+  let marshal = base ^ ".m" in
+  let ml = base ^ ".ml" in
+  (* marshalled ast *)
+  (with_file_out marshal Marshal.(fun f -> to_channel f ast []));
+  (* output ml file *)
+  (with_file_out ml 
+    (fun f ->
+      match ast with
+      | None -> ()
+      | Some(ast) -> List.iter (Convert.declarationElement (output_string f)) ast))
     
 let parse_dir dir = 
   let open Printf in
@@ -98,7 +106,6 @@ let () =
   let open Arg in
   parse (align [
     "-i", String(parse_file), "<file> Parse typescript definition file";
-    "-m", Set_string(marshall), "<file> Parse typescript definition file";
     "-d", String(parse_dir), 
       "<dir> Find all typescript definition files in directory and parser them";
     "-t", Unit(Unit_tests.run), " run unit tests";
