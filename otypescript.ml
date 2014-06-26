@@ -64,7 +64,11 @@ let parse_file ?(verbose=false) name =
   let ast = with_file_in name (Parser.parse ~verbose:true name) in
   (*(if verbose then output_string stdout (Parser.to_string ast)
   else Summary.ast ast);*)
-  Summary.Print.ast ast;
+  (*Summary.Print.ast ast;*)
+  let () = 
+    let module P = Print.Make(struct let out = print_string end) in
+    P.print_ast ast
+  in
   let base = Filename.(chop_suffix (basename name) ".d.ts") in
   let marshal = base ^ ".m" in
   let ml = base ^ ".ml" in
@@ -75,7 +79,7 @@ let parse_file ?(verbose=false) name =
     (fun f ->
       match ast with
       | None -> ()
-      | Some(ast) -> List.iter (Convert.declarationElement (output_string f)) ast))
+      | Some(ast) -> Convert.convert (output_string f) ast))
     
 let parse_dir dir = 
   let open Printf in
@@ -99,15 +103,12 @@ let parse_dir dir =
     (findall dir);
   Printf.printf "pass=%i fail=%i exn=%i\n" !pass !fail !exn
 
-(* for now just so ocamlbuild compiles Convert *)
-let convert = Convert.interfaceDeclaration
-
 let () = 
   let open Arg in
   parse (align [
     "-i", String(parse_file), "<file> Parse typescript definition file";
     "-d", String(parse_dir), 
-      "<dir> Find all typescript definition files in directory and parser them";
+      "<dir> Find all typescript definition files in directory and parse them";
     "-t", Unit(Unit_tests.run), " run unit tests";
   ]) 
   (fun _ -> failwith "anon args not allowed")

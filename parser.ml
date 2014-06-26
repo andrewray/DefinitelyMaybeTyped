@@ -627,26 +627,36 @@ module TypeScript = struct
       tmp <-- Token.char '}';
       return { eamd_name; eamd_ambientExternalModuleElements }) st
 
-  let ambientDeclaration = 
+  let ambientDeclaration export = 
         zero
-    <|> attempt (ambientVariableDeclaration |>> fun a -> `AmbientVariableDeclaration a)
-    <|> attempt (ambientModuleDeclaration |>> fun a -> `AmbientModuleDeclaration a)
-    <|> attempt (ambientFunctionDeclaration |>> fun a -> `AmbientFunctionDeclaration a)
-    <|> attempt (ambientClassDeclaration |>> fun a -> `AmbientClassDeclaration a)
-    <|> attempt (ambientEnumDeclaration |>> fun a -> `AmbientEnumDeclaration a)
-    <|> attempt (ambientExternalModuleDeclaration |>> fun a -> `AmbientExternalModuleDeclaration a)
+    <|> attempt (ambientVariableDeclaration |>> fun a -> `AmbientVariableDeclaration (export,a))
+    <|> attempt (ambientModuleDeclaration |>> fun a -> `AmbientModuleDeclaration (export,a))
+    <|> attempt (ambientFunctionDeclaration |>> fun a -> `AmbientFunctionDeclaration (export,a))
+    <|> attempt (ambientClassDeclaration |>> fun a -> `AmbientClassDeclaration (export,a))
+    <|> attempt (ambientEnumDeclaration |>> fun a -> `AmbientEnumDeclaration (export,a))
+    <|> attempt (ambientExternalModuleDeclaration |>> fun a -> 
+        `AmbientExternalModuleDeclaration (export,a))
     <|> fail "ambientDeclaration" 
 
-  let ambientDeclarationTop = 
+  let ambientDeclaration = 
     perform
-      amb_export <-- option (Token.string "export") >>= bool_of_option;
+      export <-- option (Token.string "export") >>= bool_of_option;
       tmp <-- Token.string "declare";
-      amb_ambientDeclaration <-- ambientDeclaration;
-      return { amb_export; amb_ambientDeclaration }
+      amb <-- 
+        zero
+        <|> attempt (ambientVariableDeclaration |>> fun a -> `AmbientVariableDeclaration (export,a))
+        <|> attempt (ambientModuleDeclaration |>> fun a -> `AmbientModuleDeclaration (export,a))
+        <|> attempt (ambientFunctionDeclaration |>> fun a -> `AmbientFunctionDeclaration (export,a))
+        <|> attempt (ambientClassDeclaration |>> fun a -> `AmbientClassDeclaration (export,a))
+        <|> attempt (ambientEnumDeclaration |>> fun a -> `AmbientEnumDeclaration (export,a))
+        <|> attempt (ambientExternalModuleDeclaration |>> fun a -> 
+            `AmbientExternalModuleDeclaration (export,a))
+        <|> fail "ambientDeclaration" ;
+      return amb
 
   let declarationElement st =
     (   zero 
-    <|> attempt (ambientDeclarationTop |>> fun d -> `AmbientDeclaration d)
+    <|> attempt (ambientDeclaration |>> fun d -> `AmbientDeclaration d)
     <|> attempt (exportAssignment |>> fun d -> `ExportAssignment d)
     <|> attempt (interfaceDeclaration |>> fun d -> `InterfaceDeclaration d)
     <|> attempt (externalImportDeclaration |>> fun d -> `ExternalImportDeclaration d)

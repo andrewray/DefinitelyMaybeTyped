@@ -97,7 +97,6 @@ module TypeScript : sig
   val ambientExternalModuleDeclaration : ambientExternalModuleDeclaration p
     
   val ambientDeclaration : ambientDeclaration p
-  val ambientDeclarationTop : ambientDeclarationTop p
 
   val declarationElement : declarationElement p
 

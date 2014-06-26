@@ -3,7 +3,7 @@ type declarationElement =
   | `InterfaceDeclaration of interfaceDeclaration
   | `ImportDeclaration of importDeclaration
   | `ExternalImportDeclaration of externalImportDeclaration
-  | `AmbientDeclaration of ambientDeclarationTop ]
+  | `AmbientDeclaration of ambientDeclaration ]
 
 and path = string list
 
@@ -193,18 +193,12 @@ and externalImportDeclaration =
   }
 
 and ambientDeclaration = 
-    [ `AmbientVariableDeclaration of ambientVariableDeclaration
-    | `AmbientFunctionDeclaration of ambientFunctionDeclaration
-    | `AmbientClassDeclaration of ambientClassDeclaration
-    | `AmbientEnumDeclaration of ambientEnumDeclaration
-    | `AmbientModuleDeclaration of ambientModuleDeclaration
-    | `AmbientExternalModuleDeclaration of ambientExternalModuleDeclaration ]
-
-and ambientDeclarationTop = 
-  {
-    amb_export : bool;
-    amb_ambientDeclaration : ambientDeclaration;
-  }
+    [ `AmbientVariableDeclaration of bool * ambientVariableDeclaration
+    | `AmbientFunctionDeclaration of bool * ambientFunctionDeclaration
+    | `AmbientClassDeclaration of bool * ambientClassDeclaration
+    | `AmbientEnumDeclaration of bool * ambientEnumDeclaration
+    | `AmbientModuleDeclaration of bool * ambientModuleDeclaration
+    | `AmbientExternalModuleDeclaration of bool * ambientExternalModuleDeclaration ]
 
 and ambientVariableDeclaration = 
   {
