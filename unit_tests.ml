@@ -273,14 +273,9 @@ let test_typescript =
         `Map("interface a {}", function `InterfaceDeclaration _ -> true | _ -> false);
         `Map("module a {}", function `AmbientModuleDeclaration _ -> true | _ -> false);
         `Map("import a = b.c", function `ImportDeclaration _ -> true | _ -> false);
-        `Map("function a()", function `AmbientFunctionDeclaration _ -> true | _ -> false);
+        `Map("export function a()", function `AmbientFunctionDeclaration _ -> true | _ -> false);
         `Map("enum a { b, c }", function `AmbientEnumDeclaration _ -> true | _ -> false);
         (* XXX class *)
-      ];
-      parse_tests "ambientModuleElementTop" ambientModuleElementTop [
-        `Ok "var a : b;";
-        `Ok "export var a : b;";
-        `Ok "export interface SourceMapConverter {}";
       ];
       parse_tests "ambientModuleDeclaration" ambientModuleDeclaration [
         `Ok "module a { var a; var b; }";

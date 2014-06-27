@@ -257,25 +257,19 @@ and ambientClassDeclaration =
 and ambientModuleDeclaration = 
   {
     amd_identifierPath : path;
-    amd_ambientModuleBody : ambientModuleElementTop list;
+    amd_ambientModuleBody : ambientModuleElement list;
   }
 
 and ambientModuleElement = 
-  [ `AmbientVariableDeclaration of ambientVariableDeclaration
-  | `AmbientFunctionDeclaration of ambientFunctionDeclaration
-  | `AmbientClassDeclaration of ambientClassDeclaration
-  | `InterfaceDeclaration of interfaceDeclaration
-  | `AmbientEnumDeclaration of ambientEnumDeclaration
-  | `AmbientModuleDeclaration of ambientModuleDeclaration
-  | `ImportDeclaration of importDeclaration ]
+  [ `AmbientVariableDeclaration of bool * ambientVariableDeclaration
+  | `AmbientFunctionDeclaration of bool * ambientFunctionDeclaration
+  | `AmbientClassDeclaration of bool * ambientClassDeclaration
+  | `InterfaceDeclaration of bool * interfaceDeclaration
+  | `AmbientEnumDeclaration of bool * ambientEnumDeclaration
+  | `AmbientModuleDeclaration of bool * ambientModuleDeclaration
+  | `ImportDeclaration of bool * importDeclaration ]
 
-and ambientModuleElementTop =
-  {
-    ame_export : bool;
-    ame_ambientModuleBody : ambientModuleElement;
-  }
-
-and ambientModuleElements = ambientModuleElementTop list
+and ambientModuleElements = ambientModuleElement list
 
 and ambientExternalModuleDeclaration = 
   {
@@ -284,7 +278,7 @@ and ambientExternalModuleDeclaration =
   }
 
 and ambientExternalModuleElement = 
-    [ `AmbientModuleElement of ambientModuleElementTop
+    [ `AmbientModuleElement of ambientModuleElement
     | `ExportAssignment of exportAssignment
     | `ExternalImportDeclaration of externalImportDeclaration ]
 

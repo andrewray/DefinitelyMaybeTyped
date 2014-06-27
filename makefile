@@ -8,6 +8,8 @@ byte:
 native:
 	ocamlbuild -use-ocamlfind otypescript.native
 
+#######################################################
+
 ts:
 	tsc -d test/test.ts
 
@@ -15,6 +17,8 @@ js:
 	ocamlbuild -use-ocamlfind jsserver.byte
 	ocamlbuild -use-ocamlfind test_ml.byte
 	js_of_ocaml -pretty -debuginfo -sourcemap test_ml.byte -o test/test_ml.js
+
+#######################################################
 
 lib.ml:
 	./otypescript.byte -i ../forks/DefinitelyTyped/_infrastructure/tests/typescript/0.9.7/lib.d.ts
@@ -24,6 +28,17 @@ test_lib.byte: lib.ml test_lib/test_lib.ml
 
 test_lib.js: test_lib.byte
 	js_of_ocaml test_lib.byte
+
+#######################################################
+
+bisect:
+	bisect-report -I _build -html cov bisect*.out
+
+bisect-clean:
+	- rm -fr cov
+	- rm bisect*.out
+
+#######################################################
 
 clean:
 	- rm -fr *~

@@ -260,7 +260,7 @@ let declarationElement out decl =
   | `AmbientDeclaration amb -> ambientDeclaration out amb
   
 let convert out ast = 
-  let merge = true in
+  let merge = false in
   if merge then
     List.iter (declarationElement out) (merge_interfaces ast)
   else

@@ -472,6 +472,7 @@ module TypeScript = struct
   
   let importDeclaration st = 
     (perform
+      tmp <-- option (Token.string "export"); (* XXX ??? *)
       tmp <-- Token.string "import";
       idl_identifier <-- identifier;
       tmp <-- Token.char '=';
@@ -581,24 +582,22 @@ module TypeScript = struct
       tmp <-- Token.char '}';
       return { aed_identifier; aed_enumBody }
 
-  let rec ambientModuleElements st = (many (attempt ambientModuleElementTop)) st
+  let rec ambientModuleElements st = (many (attempt ambientModuleElement)) st
 
   and ambientModuleElement st = 
-    (   zero
-    <|> attempt (ambientVariableDeclaration |>> fun a -> `AmbientVariableDeclaration a)
-    <|> attempt (ambientFunctionDeclaration |>> fun a -> `AmbientFunctionDeclaration a)
-    <|> attempt (ambientClassDeclaration |>> fun a -> `AmbientClassDeclaration a)
-    <|> attempt (interfaceDeclaration |>> fun a -> `InterfaceDeclaration a)
-    <|> attempt (ambientEnumDeclaration |>> fun a -> `AmbientEnumDeclaration a)
-    <|> attempt (ambientModuleDeclaration |>> fun a -> `AmbientModuleDeclaration a)
-    <|> attempt (importDeclaration |>> fun a -> `ImportDeclaration a)
-    <|> fail "ambientModuleElement") st
-
-  and ambientModuleElementTop st =
     (perform
-      ame_export <-- option (Token.string "export") >>= bool_of_option;
-      ame_ambientModuleBody <-- ambientModuleElement;
-      return { ame_export; ame_ambientModuleBody }) st
+      export <-- option (Token.string "export") >>= bool_of_option;
+      res <-- 
+        (   zero
+        <|> attempt (ambientVariableDeclaration |>> fun a -> `AmbientVariableDeclaration (export,a))
+        <|> attempt (ambientFunctionDeclaration |>> fun a -> `AmbientFunctionDeclaration (export,a))
+        <|> attempt (ambientClassDeclaration |>> fun a -> `AmbientClassDeclaration (export,a))
+        <|> attempt (interfaceDeclaration |>> fun a -> `InterfaceDeclaration (export,a))
+        <|> attempt (ambientEnumDeclaration |>> fun a -> `AmbientEnumDeclaration (export,a))
+        <|> attempt (ambientModuleDeclaration |>> fun a -> `AmbientModuleDeclaration (export,a))
+        <|> attempt (importDeclaration |>> fun a -> `ImportDeclaration (export,a))
+        <|> fail "ambientModuleElement");
+    return res) st
 
   and ambientModuleDeclaration st = 
     (perform
@@ -612,7 +611,7 @@ module TypeScript = struct
   let ambientExternalModuleElement = 
     (   zero
     <|> attempt (externalImportDeclaration |>> fun a -> `ExternalImportDeclaration a)
-    <|> attempt (ambientModuleElementTop |>> fun a -> `AmbientModuleElement a)
+    <|> attempt (ambientModuleElement |>> fun a -> `AmbientModuleElement a)
     <|> attempt (exportAssignment |>> fun a -> `ExportAssignment a)
     <|> fail "ambientExternalModuleElement")
 
