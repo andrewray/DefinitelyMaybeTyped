@@ -1,0 +1,33 @@
+OASISFormat: 0.4
+Name:        DefinitelyMaybeTyped
+Version:     1.1.1
+Synopsis:    Convert Typescript definitions to OCaml
+Description: Convert Typescript definitions to OCaml
+
+Authors:     Andy Ray
+Maintainers: Andy Ray <andy.ray@ujamjar.com>
+Homepage:    https://github.com/ujamjar/DefinitelyMaybeTyped
+License:     ISC
+Plugins:     META (0.4)
+BuildTools:  ocamlbuild
+
+Library DefinitelyMaybeTyped
+  Path:          src
+  Findlibname:   otypescript
+  Pack:          true
+  Modules:       Ast, Ts, Parser, Print, Summary, Convert, Unit_tests
+  BuildDepends:  mparser.pcre,bisect,monad-custom,deriving.syntax,oUnit,js_of_ocaml
+  XMETARequires: mparser.pcre,bisect,monad-custom,deriving.syntax,oUnit,js_of_ocaml
+
+Executable otypescript
+  Path:               app
+  MainIs:             otypescript.ml
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       otypescript
+
+SourceRepository master
+  Type:     git
+  Location: https://github.com/ujamjar/DefinitelyMaybeTyped.git
+  Browser:  https://github.com/ujamjar/DefinitelyMaybeTyped

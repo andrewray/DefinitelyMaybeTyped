@@ -1,24 +1,48 @@
-<ast.ml{,i}>: syntax(camlp4o), package(mparser.pcre,deriving-ocsigen.syntax)
-<parser.ml{,i}>: syntax(camlp4o), package(mparser.pcre,monad-custom,deriving-ocsigen.syntax)
-<unit_tests.ml{,i}>: package(oUnit,mparser.pcre)
-
-#<print.ml>: syntax(camlp4o), package(bisect)
-
-<ts.ml>: package(js_of_ocaml)
-<lib.ml>: package(js_of_ocaml)
-
-<otypescript.byte>: package(mparser.pcre,oUnit,deriving-ocsigen,bisect)
-<otypescript.native>: package(mparser.pcre,oUnit,deriving-ocsigen,bisect)
-
-<test/jsserver.ml>: package(findlib,cohttp.lwt)
-<test/jsserver.byte>: package(findlib,cohttp.lwt)
-
-<test/test_ml.ml>: syntax(camlp4o), package(js_of_ocaml.syntax)
-<test/test_ml.byte>: package(js_of_ocaml)
-
-<test_lib/test_lib.ml>: syntax(camlp4o), package(js_of_ocaml.syntax)
-<test_lib/test_lib.byte>: package(js_of_ocaml)
-
-true: bin_annot
-<test>: include
-<test_lib>: include
+# OASIS_START
+# DO NOT EDIT (digest: 847fd73d704fed88bc49e97fb49634b1)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+true: annot, bin_annot
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library DefinitelyMaybeTyped
+"src/DefinitelyMaybeTyped.cmxs": use_DefinitelyMaybeTyped
+"src/ast.cmx": for-pack(DefinitelyMaybeTyped)
+"src/ts.cmx": for-pack(DefinitelyMaybeTyped)
+"src/parser.cmx": for-pack(DefinitelyMaybeTyped)
+"src/print.cmx": for-pack(DefinitelyMaybeTyped)
+"src/summary.cmx": for-pack(DefinitelyMaybeTyped)
+"src/convert.cmx": for-pack(DefinitelyMaybeTyped)
+"src/unit_tests.cmx": for-pack(DefinitelyMaybeTyped)
+<src/*.ml{,i,y}>: pkg_bisect
+<src/*.ml{,i,y}>: pkg_deriving.syntax
+<src/*.ml{,i,y}>: pkg_js_of_ocaml
+<src/*.ml{,i,y}>: pkg_monad-custom
+<src/*.ml{,i,y}>: pkg_mparser.pcre
+<src/*.ml{,i,y}>: pkg_oUnit
+# Executable otypescript
+<app/otypescript.{native,byte}>: pkg_bisect
+<app/otypescript.{native,byte}>: pkg_deriving.syntax
+<app/otypescript.{native,byte}>: pkg_js_of_ocaml
+<app/otypescript.{native,byte}>: pkg_monad-custom
+<app/otypescript.{native,byte}>: pkg_mparser.pcre
+<app/otypescript.{native,byte}>: pkg_oUnit
+<app/otypescript.{native,byte}>: use_DefinitelyMaybeTyped
+<app/*.ml{,i,y}>: pkg_bisect
+<app/*.ml{,i,y}>: pkg_deriving.syntax
+<app/*.ml{,i,y}>: pkg_js_of_ocaml
+<app/*.ml{,i,y}>: pkg_monad-custom
+<app/*.ml{,i,y}>: pkg_mparser.pcre
+<app/*.ml{,i,y}>: pkg_oUnit
+<app/*.ml{,i,y}>: use_DefinitelyMaybeTyped
+<app/otypescript.{native,byte}>: custom
+# OASIS_STOP

@@ -27,7 +27,11 @@ let implode list =
   in
   f 0 list;
   str
-
+(*
+let implode list = 
+  let s = Array.of_list list in
+  String.init (Array.length s) (fun i -> s.(i))
+*)
 (* comments and whitespace *)
 
 module Comment = struct

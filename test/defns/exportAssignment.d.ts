@@ -1,0 +1,2 @@
+export = an_identifier;
+

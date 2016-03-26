@@ -32,50 +32,49 @@ end) = struct
         show "property [call]" x.apm_propertyName
     | `IndexSignature x -> show "index" x.ids_identifier
 
-  and ambientModuleElement level = 
+  and ambientModuleElement level : ambientModuleElement -> unit = 
     let show n t = show level n t in
     function
-    | `AmbientVariableDeclaration avd -> show "var" avd.avd_identifier
-    | `AmbientFunctionDeclaration afn -> show "function" afn.afn_identifier
-    | `AmbientClassDeclaration acd -> 
+    | `AmbientVariableDeclaration (_,avd) -> show "var" avd.avd_identifier
+    | `AmbientFunctionDeclaration (_,afn) -> show "function" afn.afn_identifier
+    | `AmbientClassDeclaration (_,acd) -> 
         show "class" acd.acd_identifier;
         List.iter (ambientClassBodyElement (level+1)) acd.acd_classBody
-    | `AmbientEnumDeclaration aed -> show "enum" aed.aed_identifier
-    | `AmbientModuleDeclaration amd -> 
+    | `AmbientEnumDeclaration (_,aed) -> show "enum" aed.aed_identifier
+    | `AmbientModuleDeclaration (_,amd) -> 
         show "module" (path amd.amd_identifierPath);
-        List.iter (fun x -> ambientModuleElement (level+1) x.ame_ambientModuleBody)
-          amd.amd_ambientModuleBody
-    | `InterfaceDeclaration idf -> 
+        List.iter (ambientModuleElement (level+1)) amd.amd_ambientModuleBody
+    | `InterfaceDeclaration (_,idf) -> 
         show "interface" idf.idf_identifier;
         List.iter (typeMember (level+1)) idf.idf_objectType
-    | `ImportDeclaration idl -> show "import" idl.idl_identifier
+    | `ImportDeclaration (_,idl) -> show "import" idl.idl_identifier
 
   and ambientExternalModuleElement level = 
     let show = show level in
     function 
     | `AmbientModuleElement x -> 
-        ambientModuleElement (level+1) x.ame_ambientModuleBody
+        ambientModuleElement (level+1) x
     | `ExportAssignment x -> show "export" x
     | `ExternalImportDeclaration x -> show "import" x.eid_identifier
 
-  and ambientDeclaration level = 
+  and ambientDeclaration level : ambientDeclaration -> unit = 
     let show = show level in
     function
-    | `AmbientVariableDeclaration avd -> show "declare var" avd.avd_identifier
-    | `AmbientFunctionDeclaration afn -> show "declare function" afn.afn_identifier
-    | `AmbientClassDeclaration acd -> 
+    | `AmbientVariableDeclaration (_,avd) -> show "declare var" avd.avd_identifier
+    | `AmbientFunctionDeclaration (_,afn) -> show "declare function" afn.afn_identifier
+    | `AmbientClassDeclaration (_,acd) -> 
         show "declare class" acd.acd_identifier;
         List.iter (ambientClassBodyElement (level+1)) acd.acd_classBody
-    | `AmbientEnumDeclaration aed -> show "declare enum" aed.aed_identifier
-    | `AmbientModuleDeclaration amd -> 
+    | `AmbientEnumDeclaration (_,aed) -> show "declare enum" aed.aed_identifier
+    | `AmbientModuleDeclaration (_,amd) -> 
         show "declare module" (path amd.amd_identifierPath);
-        List.iter (fun x -> ambientModuleElement (level+1) x.ame_ambientModuleBody)
+        List.iter (fun x -> ambientModuleElement (level+1) x)
           amd.amd_ambientModuleBody
-    | `AmbientExternalModuleDeclaration eamd -> 
+    | `AmbientExternalModuleDeclaration (_,eamd) -> 
         show "declare (ext) module" eamd.eamd_name;
         List.iter (ambientExternalModuleElement (level+1)) eamd.eamd_ambientExternalModuleElements
 
-  and ast = function
+  and ast : declarationElement list option -> unit = function
     | None -> ()
     | Some(ast) ->
       let show = show 0 in
@@ -88,7 +87,7 @@ end) = struct
             List.iter (typeMember 1) idf.idf_objectType
         | `ImportDeclaration idl -> show "import" idl.idl_identifier
         | `ExternalImportDeclaration eid -> show "import (ext)" eid.eid_identifier
-        | `AmbientDeclaration amb -> ambientDeclaration 0 amb.amb_ambientDeclaration)
+        | `AmbientDeclaration amb -> ambientDeclaration 0 amb)
         ast
 
 end
