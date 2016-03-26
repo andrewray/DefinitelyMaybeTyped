@@ -3,6 +3,7 @@
  *)
 
 open MParser
+open MParser_PCRE
 
 (* utils *)
 

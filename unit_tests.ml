@@ -1,5 +1,6 @@
 open OUnit
 open MParser
+open MParser_PCRE
 
 let parse_string ?(eof=true) p s = 
   if eof then parse_string ((<<) p MParser.eof) s ()

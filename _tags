@@ -1,14 +1,14 @@
-<ast.ml{,i}>: syntax(camlp4o), package(mparser,deriving-ocsigen.syntax)
-<parser.ml{,i}>: syntax(camlp4o), package(mparser,monad-custom,deriving-ocsigen.syntax)
-<unit_tests.ml{,i}>: package(oUnit,mparser)
+<ast.ml{,i}>: syntax(camlp4o), package(mparser.pcre,deriving-ocsigen.syntax)
+<parser.ml{,i}>: syntax(camlp4o), package(mparser.pcre,monad-custom,deriving-ocsigen.syntax)
+<unit_tests.ml{,i}>: package(oUnit,mparser.pcre)
 
-<print.ml>: syntax(camlp4o), package(bisect)
+#<print.ml>: syntax(camlp4o), package(bisect)
 
 <ts.ml>: package(js_of_ocaml)
 <lib.ml>: package(js_of_ocaml)
 
-<otypescript.byte>: package(mparser,oUnit,deriving-ocsigen,bisect)
-<otypescript.native>: package(mparser,oUnit,deriving-ocsigen,bisect)
+<otypescript.byte>: package(mparser.pcre,oUnit,deriving-ocsigen,bisect)
+<otypescript.native>: package(mparser.pcre,oUnit,deriving-ocsigen,bisect)
 
 <test/jsserver.ml>: package(findlib,cohttp.lwt)
 <test/jsserver.byte>: package(findlib,cohttp.lwt)
